@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable(false)->constrained('users');
             $table->string('title')->nullable(false);
-            $table->foreignId('type_id')->nullable(false)->constrained('types');
+            $table->foreignId('type_id')->nullable(false)->constrained('transaction_types');
             $table->timestamps();
         });
     }
