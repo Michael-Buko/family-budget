@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
     docker-php-ext-install zip && \
     docker-php-ext-install mbstring && \
     docker-php-ext-install pcntl && \
+	pecl install xdebug imagick && \
+	docker-php-ext-enable xdebug && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
