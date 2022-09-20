@@ -19,6 +19,7 @@ class SummaryResource extends JsonResource
             'category_id' =>$this->category_id,
             'category' => $this->title,
             'planned_amount' => $this->planned_amount,
+            'type_of_category' => $this->type_id,
         ];
     }
 }

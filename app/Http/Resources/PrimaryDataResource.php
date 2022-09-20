@@ -17,7 +17,7 @@ class PrimaryDataResource extends JsonResource
         return [
             'primary_data_id' => $this->id,
             'user_id' => $this->user_id,
-            'name' => $this->name,
+            'user_name' => $this->name,
             'date' => $this->date,
             'initial_amount' => $this->initial_amount,
         ];

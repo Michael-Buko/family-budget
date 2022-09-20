@@ -9,6 +9,7 @@ use App\Models\PrimaryData;
 use App\Models\Summary;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\DB;
 
 class MainController extends Controller
 {
@@ -21,6 +22,28 @@ class MainController extends Controller
     {
         $data = [];
 
+        $transactionToPrimaryData = Transaction
+            ::where('transactions.user_id', $request->input('user', 0))
+            ->whereYear('transactions.date', $request->input('year'))
+            ->whereMonth('transactions.date', $request->input('month'))
+            ->join('categories', 'transactions.category_id', '=', 'categories.id')
+            ->select('categories.type_id', Transaction::raw('SUM(amount) as amount'))
+            ->groupBy('categories.type_id')
+            ->get();
+
+        $data['transactionPrimaryData'] = $transactionToPrimaryData;
+
+        $summaryToPrimaryData = Summary
+            ::where('summaries.user_id', $request->input('user', 0))
+            ->whereYear('summaries.date', $request->input('year'))
+            ->whereMonth('summaries.date', $request->input('month'))
+            ->join('categories', 'summaries.category_id', '=', 'categories.id')
+            ->select('categories.type_id', Summary::raw('SUM(planned_amount) as planned_amount'))
+            ->groupBy('categories.type_id')
+            ->get();
+
+        $data['summaryPrimaryData'] = $summaryToPrimaryData;
+
         $data['primaryData'] = new PrimaryDataCollection(
             PrimaryData
                 ::where('user_id', $request->input('user', 0))
@@ -31,35 +54,33 @@ class MainController extends Controller
                 ->get()
         );
 
-        $data['summary'] = new SummaryCollection(
-            Summary
-                ::where('summaries.user_id', $request->input('user', 0))
-                ->whereYear('date', $request->input('year'))
-                ->whereMonth('date', $request->input('month'))
-                ->join('categories', 'category_id', '=', 'categories.id')
-                ->select('summaries.*', 'categories.title')
-                ->get()
-        );
-
-        $transactions = Transaction
-            ::where('transactions.user_id', $request->input('user', 0))
+        $tempTransaction = Transaction
+            ::where('user_id', $request->input('user', 0))
             ->whereYear('date', $request->input('year'))
             ->whereMonth('date', $request->input('month'))
-            ->get();
+            ->select('category_id', Transaction::raw('SUM(amount) as amount'))
+            ->groupBy('category_id');
 
-        $transactionArray = [];
-        $transactionsMain = [];
-        foreach ($transactions as $transaction) {
-            if (array_key_exists($transaction->category_id, $transactionArray)) {
-                $transactionArray[$transaction->category_id] += $transaction->amount;
-            } else {
-                $transactionArray[$transaction->category_id] = $transaction->amount;
-            }
-        };
-        foreach ($transactionArray as $key => $value) {
-            $transactionsMain[] = ['category_id' => $key, 'amount' => $value];
-        }
-        $data['transaction'] = $transactionsMain;
+
+        $data['summary'] = Summary
+            ::where('summaries.user_id', $request->input('user', 0))
+            ->whereYear('date', $request->input('year'))
+            ->whereMonth('date', $request->input('month'))
+            ->join('categories', 'summaries.category_id', '=', 'categories.id')
+            ->leftJoinSub($tempTransaction, 'transactions', function ($join) {
+                $join->on('summaries.category_id', '=', 'transactions.category_id');
+            })
+            ->select(
+                'summaries.id',
+                'summaries.user_id',
+                'summaries.date',
+                'summaries.category_id',
+                'planned_amount',
+                'transactions.amount',
+                'title',
+                'type_id'
+            )
+            ->get();
 
         return response()->json($data, 200);
     }
