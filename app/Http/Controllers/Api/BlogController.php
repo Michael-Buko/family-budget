@@ -17,7 +17,7 @@ class BlogController extends Controller
     {
         $data = [];
 
-        $blog = Blog::query()->orderByDesc('id')->get();
+        $blog = Blog::orderByDesc('id')->get();
 
         $data['blog'] = $blog;
 
@@ -32,7 +32,8 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Blog::create($request->all());
+        return response()->json(['message' => 'Article saved'], 200);
     }
 
     /**
@@ -43,7 +44,10 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        //
+        $data = [];
+        $blog = Blog::query()->find($id);
+        $data['blog'] = $blog;
+        return response()->json($data, 200);
     }
 
     /**
@@ -55,7 +59,8 @@ class BlogController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        Blog::find($id)->update($request->all());
+        return response()->json(['message' => 'Article updated'], 200);
     }
 
     /**
@@ -66,6 +71,8 @@ class BlogController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $blog = Blog::find($id);
+        $blog->delete();
+        return response()->json(['message' => 'Article deleted'], 200);
     }
 }

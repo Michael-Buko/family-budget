@@ -25,5 +25,9 @@ Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 
 Route::middleware('auth:sanctum')->get('/auth/user', [AuthController::class, 'getUser']);
 
 Route::get('/blog', [\App\Http\Controllers\Api\BlogController::class, 'index']);
+Route::get('/blog/{id}', [\App\Http\Controllers\Api\BlogController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/blog', [\App\Http\Controllers\Api\BlogController::class, 'store']);
+Route::middleware('auth:sanctum')->post('/blog/{id}', [\App\Http\Controllers\Api\BlogController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/blog/{id}', [\App\Http\Controllers\Api\BlogController::class, 'destroy']);
 Route::middleware('auth:sanctum')->apiResource('/main', \App\Http\Controllers\Api\MainController::class);
 Route::middleware('auth:sanctum')->apiResource('/transactions', \App\Http\Controllers\Api\TransactionsController::class);
